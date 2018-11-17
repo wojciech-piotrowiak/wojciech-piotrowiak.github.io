@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Błąd za 10 tysięcy dolarów | Your awesome title</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Błąd za 10 tysięcy dolarów" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Jestem w trakcie lektury &#39;Site Reliability Engineering - How google run production systems&#39; (recenzja już niedługo) i bardzo spodobał mi się pomysł &#39;postmortem&#39; czyli analizy błęd&oacute;w. Dzięki temu wszyscy pracownicy uczą się na błędach innych. Sam opis błędu pozbawiony jest obwiniania, dzięki czemu pracownicy bez obaw opisują problemy. Idea przyjęłą się także poza google, ostatnio allegro opisało w jaki spos&oacute;b jedna aukcja położyła cały serwis: https://allegro.tech/2018/08/postmortem-why-allegro-went-down.html Dziś chciałbym opowiedzieć o błędzie kt&oacute;ry nieświadomie wprowadziłem do produktu, historia na szczęście zakończyła się happy endem. Opis Błędu Efektem błędu było złe odkładanie log&oacute;w systemowych, losowo logi lądowały w pliku catalina.out lub w podstawowym pliku. W pierwszym kroku zesp&oacute;ł devops dodał monitoring na dodatkowy plik catalina.out. Na dłuższą metę takie rozwiązanie nie mogło być zaakceptowane ze względu na wysokie koszty, przy aktualnym wykorzystaniu serwer&oacute;w oznaczało to dodatkowe 10 tysięcy dolar&oacute;w miesięczenie. W kolejnym kroku por&oacute;wnano datę wystąpienia defektu ze zmianami w kodzie. Dzięki temu dostaliśmy sygnał, że to nasza zmiana spowodowała błąd. Po analizie okazało sie, że błąd dotyczył zależności mavenowej. Podczas refaktoringu zależność &#39;mockserver-netty&#39; kt&oacute;ra wykorzystywana jest do test&oacute;w integracyjnych była kilkukrotnie przenoszona pomiędzy modułami. Podczas ostatniej zmiany zależność straciła scope test i stała się normalną zależnością. Wspomniana biblioteka r&oacute;wnież wymaga logowania, jej zalezność wymagała dokładnie tej samej biblioteki logującej kt&oacute;ra jest już użyta w systemie. Tak więc podczas startu biblioteka odpowiedzialna za logowanie była załadowana dwa razy. W efekcie podczas classloadingu okazywało się, że jest kilka użyć biblioteki SLF4J więc zostaje użyta jedna z nich (fragment log&oacute;w): SLF4J: Class path contains multiple SLF4J bindings. SLF4J: Found binding in [jar:target/ROOT/WEB-INF/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class] SLF4J: Found binding in [jar:/target/ROOT/WEB-INF/lib/logback-classic-1.1.3.jar!/org/slf4j/impl/StaticLoggerBinder.class] SLF4J: See&nbsp;http://www.slf4j.org/codes.html#multiple_bindings&nbsp;for an explanation. SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory] Defektu nie udało się wykryć ani podczas code review ani podczas test&oacute;w. Środowisko deweloperskie mocno r&oacute;żni się od produkcyjnego, dlatego nie mieliśmy możliwości wykryć zmian w logowaniu. Rozwiązanie Naprawa problemu była bardzo prosta, wystarczyło dodać scope test do zależności.&nbsp; Błąd został zauważony wcześnie, więc na szczęście został usunięty przed releasem. Co można zrobić by uniknąć tego typu problem&oacute;w? -Analiza log&oacute;w serwera -Definiowanie wsp&oacute;lnych zależności w jednym miejscu dla kilku moduł&oacute;w -Analiza zależności np przy użyciu komend: mvn dependency:tree lub mvn dependency:analyze-duplicate" />
+<meta property="og:description" content="Jestem w trakcie lektury &#39;Site Reliability Engineering - How google run production systems&#39; (recenzja już niedługo) i bardzo spodobał mi się pomysł &#39;postmortem&#39; czyli analizy błęd&oacute;w. Dzięki temu wszyscy pracownicy uczą się na błędach innych. Sam opis błędu pozbawiony jest obwiniania, dzięki czemu pracownicy bez obaw opisują problemy. Idea przyjęłą się także poza google, ostatnio allegro opisało w jaki spos&oacute;b jedna aukcja położyła cały serwis: https://allegro.tech/2018/08/postmortem-why-allegro-went-down.html Dziś chciałbym opowiedzieć o błędzie kt&oacute;ry nieświadomie wprowadziłem do produktu, historia na szczęście zakończyła się happy endem. Opis Błędu Efektem błędu było złe odkładanie log&oacute;w systemowych, losowo logi lądowały w pliku catalina.out lub w podstawowym pliku. W pierwszym kroku zesp&oacute;ł devops dodał monitoring na dodatkowy plik catalina.out. Na dłuższą metę takie rozwiązanie nie mogło być zaakceptowane ze względu na wysokie koszty, przy aktualnym wykorzystaniu serwer&oacute;w oznaczało to dodatkowe 10 tysięcy dolar&oacute;w miesięczenie. W kolejnym kroku por&oacute;wnano datę wystąpienia defektu ze zmianami w kodzie. Dzięki temu dostaliśmy sygnał, że to nasza zmiana spowodowała błąd. Po analizie okazało sie, że błąd dotyczył zależności mavenowej. Podczas refaktoringu zależność &#39;mockserver-netty&#39; kt&oacute;ra wykorzystywana jest do test&oacute;w integracyjnych była kilkukrotnie przenoszona pomiędzy modułami. Podczas ostatniej zmiany zależność straciła scope test i stała się normalną zależnością. Wspomniana biblioteka r&oacute;wnież wymaga logowania, jej zalezność wymagała dokładnie tej samej biblioteki logującej kt&oacute;ra jest już użyta w systemie. Tak więc podczas startu biblioteka odpowiedzialna za logowanie była załadowana dwa razy. W efekcie podczas classloadingu okazywało się, że jest kilka użyć biblioteki SLF4J więc zostaje użyta jedna z nich (fragment log&oacute;w): SLF4J: Class path contains multiple SLF4J bindings. SLF4J: Found binding in [jar:target/ROOT/WEB-INF/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class] SLF4J: Found binding in [jar:/target/ROOT/WEB-INF/lib/logback-classic-1.1.3.jar!/org/slf4j/impl/StaticLoggerBinder.class] SLF4J: See&nbsp;http://www.slf4j.org/codes.html#multiple_bindings&nbsp;for an explanation. SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory] Defektu nie udało się wykryć ani podczas code review ani podczas test&oacute;w. Środowisko deweloperskie mocno r&oacute;żni się od produkcyjnego, dlatego nie mieliśmy możliwości wykryć zmian w logowaniu. Rozwiązanie Naprawa problemu była bardzo prosta, wystarczyło dodać scope test do zależności.&nbsp; Błąd został zauważony wcześnie, więc na szczęście został usunięty przed releasem. Co można zrobić by uniknąć tego typu problem&oacute;w? -Analiza log&oacute;w serwera -Definiowanie wsp&oacute;lnych zależności w jednym miejscu dla kilku moduł&oacute;w -Analiza zależności np przy użyciu komend: mvn dependency:tree lub mvn dependency:analyze-duplicate" />
+<link rel="canonical" href="http://localhost:4000/postmortem/2018/09/20/blad-za-10-tysiecy-dolarow.html" />
+<meta property="og:url" content="http://localhost:4000/postmortem/2018/09/20/blad-za-10-tysiecy-dolarow.html" />
+<meta property="og:site_name" content="Your awesome title" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-09-20T10:06:06+02:00" />
+<script type="application/ld+json">
+{"description":"Jestem w trakcie lektury &#39;Site Reliability Engineering - How google run production systems&#39; (recenzja już niedługo) i bardzo spodobał mi się pomysł &#39;postmortem&#39; czyli analizy błęd&oacute;w. Dzięki temu wszyscy pracownicy uczą się na błędach innych. Sam opis błędu pozbawiony jest obwiniania, dzięki czemu pracownicy bez obaw opisują problemy. Idea przyjęłą się także poza google, ostatnio allegro opisało w jaki spos&oacute;b jedna aukcja położyła cały serwis: https://allegro.tech/2018/08/postmortem-why-allegro-went-down.html Dziś chciałbym opowiedzieć o błędzie kt&oacute;ry nieświadomie wprowadziłem do produktu, historia na szczęście zakończyła się happy endem. Opis Błędu Efektem błędu było złe odkładanie log&oacute;w systemowych, losowo logi lądowały w pliku catalina.out lub w podstawowym pliku. W pierwszym kroku zesp&oacute;ł devops dodał monitoring na dodatkowy plik catalina.out. Na dłuższą metę takie rozwiązanie nie mogło być zaakceptowane ze względu na wysokie koszty, przy aktualnym wykorzystaniu serwer&oacute;w oznaczało to dodatkowe 10 tysięcy dolar&oacute;w miesięczenie. W kolejnym kroku por&oacute;wnano datę wystąpienia defektu ze zmianami w kodzie. Dzięki temu dostaliśmy sygnał, że to nasza zmiana spowodowała błąd. Po analizie okazało sie, że błąd dotyczył zależności mavenowej. Podczas refaktoringu zależność &#39;mockserver-netty&#39; kt&oacute;ra wykorzystywana jest do test&oacute;w integracyjnych była kilkukrotnie przenoszona pomiędzy modułami. Podczas ostatniej zmiany zależność straciła scope test i stała się normalną zależnością. Wspomniana biblioteka r&oacute;wnież wymaga logowania, jej zalezność wymagała dokładnie tej samej biblioteki logującej kt&oacute;ra jest już użyta w systemie. Tak więc podczas startu biblioteka odpowiedzialna za logowanie była załadowana dwa razy. W efekcie podczas classloadingu okazywało się, że jest kilka użyć biblioteki SLF4J więc zostaje użyta jedna z nich (fragment log&oacute;w): SLF4J: Class path contains multiple SLF4J bindings. SLF4J: Found binding in [jar:target/ROOT/WEB-INF/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class] SLF4J: Found binding in [jar:/target/ROOT/WEB-INF/lib/logback-classic-1.1.3.jar!/org/slf4j/impl/StaticLoggerBinder.class] SLF4J: See&nbsp;http://www.slf4j.org/codes.html#multiple_bindings&nbsp;for an explanation. SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory] Defektu nie udało się wykryć ani podczas code review ani podczas test&oacute;w. Środowisko deweloperskie mocno r&oacute;żni się od produkcyjnego, dlatego nie mieliśmy możliwości wykryć zmian w logowaniu. Rozwiązanie Naprawa problemu była bardzo prosta, wystarczyło dodać scope test do zależności.&nbsp; Błąd został zauważony wcześnie, więc na szczęście został usunięty przed releasem. Co można zrobić by uniknąć tego typu problem&oacute;w? -Analiza log&oacute;w serwera -Definiowanie wsp&oacute;lnych zależności w jednym miejscu dla kilku moduł&oacute;w -Analiza zależności np przy użyciu komend: mvn dependency:tree lub mvn dependency:analyze-duplicate","@type":"BlogPosting","url":"http://localhost:4000/postmortem/2018/09/20/blad-za-10-tysiecy-dolarow.html","headline":"Błąd za 10 tysięcy dolarów","dateModified":"2018-09-20T10:06:06+02:00","datePublished":"2018-09-20T10:06:06+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/postmortem/2018/09/20/blad-za-10-tysiecy-dolarow.html"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Your awesome title" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Your awesome title</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a><a class="page-link" href="/sample-page/">Sample Page</a><a class="page-link" href="/projects/">Projekty</a><a class="page-link" href="/contact/">Kontakt</a><a class="page-link" href="/doswiadczenie/">Doświadczenie</a><a class="page-link" href="/o-mnie/">O mnie</a><a class="page-link" href="/diy/">DIY</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Błąd za 10 tysięcy dolar&amp;oacute;w</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-09-20T10:06:06+02:00" itemprop="datePublished">Sep 20, 2018
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">{"display_name"=>"wpiot", "login"=>"wpiot", "email"=>"wojciech.piotrowiak+wordpress@gmail.com", "url"=>""}</span></span></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Jestem w trakcie lektury 'Site Reliability Engineering - How google run production systems' (recenzja już niedługo) i bardzo spodobał mi się pomysł 'postmortem' czyli analizy błęd&oacute;w. Dzięki temu wszyscy pracownicy uczą się na błędach innych. Sam opis błędu pozbawiony jest obwiniania, dzięki czemu pracownicy bez obaw opisują problemy.</p>
+<p>Idea przyjęłą się także poza google, ostatnio allegro opisało w jaki spos&oacute;b jedna aukcja położyła cały serwis: <a href="https://allegro.tech/2018/08/postmortem-why-allegro-went-down.html">https://allegro.tech/2018/08/postmortem-why-allegro-went-down.html</a></p>
+<p>Dziś chciałbym opowiedzieć o błędzie kt&oacute;ry nieświadomie wprowadziłem do produktu, historia na szczęście zakończyła się happy endem.</p>
+<h1>Opis Błędu</h1>
+<p>Efektem błędu było złe odkładanie log&oacute;w systemowych, losowo logi lądowały w pliku catalina.out lub w podstawowym pliku. W pierwszym kroku zesp&oacute;ł devops dodał monitoring na dodatkowy plik catalina.out.</p>
+<p>Na dłuższą metę takie rozwiązanie nie mogło być zaakceptowane ze względu na wysokie koszty, przy aktualnym wykorzystaniu serwer&oacute;w oznaczało to dodatkowe 10 tysięcy dolar&oacute;w miesięczenie.</p>
+<p>W kolejnym kroku por&oacute;wnano datę wystąpienia defektu ze zmianami w kodzie. Dzięki temu dostaliśmy sygnał, że to nasza zmiana spowodowała błąd.</p>
+<p>Po analizie okazało sie, że błąd dotyczył zależności mavenowej. Podczas refaktoringu zależność 'mockserver-netty' kt&oacute;ra wykorzystywana jest do test&oacute;w integracyjnych była kilkukrotnie przenoszona pomiędzy modułami. Podczas ostatniej zmiany zależność straciła scope <strong>test </strong>i stała się normalną zależnością.</p>
+<p>Wspomniana biblioteka r&oacute;wnież wymaga logowania, jej zalezność wymagała dokładnie tej samej biblioteki logującej kt&oacute;ra jest już użyta w systemie. Tak więc podczas startu biblioteka odpowiedzialna za logowanie była załadowana dwa razy.</p>
+<p>W efekcie podczas classloadingu okazywało się, że jest kilka użyć biblioteki SLF4J więc zostaje użyta jedna z nich (fragment log&oacute;w):</p>
+<blockquote><p>SLF4J: Class path contains multiple SLF4J bindings.<br />
+SLF4J: Found binding in [jar:<a class="m_4640610639389359598external-link" href="http://file/Users/wojciech.piotrowiak/IdeaProjects/jss/jss9/target/ROOT/WEB-INF/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class" target="_blank" rel="nofollow noopener" data-saferedirecturl="https://www.google.com/url?q=http://file/Users/wojciech.piotrowiak/IdeaProjects/jss/jss9/target/ROOT/WEB-INF/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class&amp;source=gmail&amp;ust=1537523583657000&amp;usg=AFQjCNFk6kfP73kBN5XJXgIgbhAUhzObSg">target/ROOT/WEB-INF/lib/<wbr />slf4j-log4j12-1.7.5.jar!/org/<wbr />slf4j/impl/StaticLoggerBinder.<wbr />class</a>]<br />
+SLF4J: Found binding in [jar:<a class="m_4640610639389359598external-link" href="http://file/Users/wojciech.piotrowiak/IdeaProjects/jss/jss9/target/ROOT/WEB-INF/lib/logback-classic-1.1.3.jar!/org/slf4j/impl/StaticLoggerBinder.class" target="_blank" rel="nofollow noopener" data-saferedirecturl="https://www.google.com/url?q=http://file/Users/wojciech.piotrowiak/IdeaProjects/jss/jss9/target/ROOT/WEB-INF/lib/logback-classic-1.1.3.jar!/org/slf4j/impl/StaticLoggerBinder.class&amp;source=gmail&amp;ust=1537523583657000&amp;usg=AFQjCNHpb3gygFYZklpXIH-8IKH8o1fRDQ">/target/ROOT/WEB-INF/lib/<wbr />logback-classic-1.1.3.jar!/<wbr />org/slf4j/impl/<wbr />StaticLoggerBinder.class</a>]<br />
+SLF4J: See&nbsp;<a class="m_4640610639389359598external-link" href="http://www.slf4j.org/codes.html#multiple_bindings" target="_blank" rel="nofollow noopener" data-saferedirecturl="https://www.google.com/url?q=http://www.slf4j.org/codes.html%23multiple_bindings&amp;source=gmail&amp;ust=1537523583657000&amp;usg=AFQjCNFSP7GAWId9CTH8iumcVum12sZ7xg">http://www.slf4j.org/<wbr />codes.html#multiple_bindings</a>&nbsp;<wbr />for an explanation.<br />
+SLF4J: Actual binding is of type [org.slf4j.impl.<wbr />Log4jLoggerFactory]</p></blockquote>
+<p>Defektu nie udało się wykryć ani podczas code review ani podczas test&oacute;w. Środowisko deweloperskie mocno r&oacute;żni się od produkcyjnego, dlatego nie mieliśmy możliwości wykryć zmian w logowaniu.</p>
+<h1>Rozwiązanie</h1>
+<p>Naprawa problemu była bardzo prosta, wystarczyło dodać scope <strong>test </strong>do zależności.&nbsp; Błąd został zauważony wcześnie, więc na szczęście został usunięty przed releasem.</p>
+<h1>Co można zrobić by uniknąć tego typu problem&oacute;w?</h1>
+<p>-Analiza log&oacute;w serwera</p>
+<p>-Definiowanie wsp&oacute;lnych zależności w jednym miejscu dla kilku moduł&oacute;w</p>
+<p>-Analiza zależności np przy użyciu komend: <span class="m_4640610639389359598gmail-s1">mvn dependency:tree lub </span><span class="m_4640610639389359598gmail-s1">mvn dependency:analyze-duplicate</span></p>
+
+  </div><a class="u-url" href="/postmortem/2018/09/20/blad-za-10-tysiecy-dolarow.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Your awesome title</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Your awesome title</li><li><a class="u-email" href="mailto:your-email@example.com">your-email@example.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/jekyll"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">jekyll</span></a></li><li><a href="https://www.twitter.com/jekyllrb"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">jekyllrb</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
