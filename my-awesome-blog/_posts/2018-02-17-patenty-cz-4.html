@@ -1,0 +1,46 @@
+---
+layout: post
+status: publish
+published: true
+title: Patenty cz.4
+author:
+  display_name: admin
+  login: admin
+  email: wojciech.piotrowiak@gmail.com
+  url: ''
+author_login: admin
+author_email: wojciech.piotrowiak@gmail.com
+wordpress_id: 137
+wordpress_url: https://www.wojciechpiotrowiak.eu/?p=137
+date: '2018-02-17 20:11:44 +0100'
+date_gmt: '2018-02-17 20:11:44 +0100'
+categories:
+- patenty
+tags: []
+---
+<p>Wracam po długiej przerwie, dziś kilka temat&oacute;w raczej nie związanych bezpośrednio z kodowaniem.</p>
+<h1>JPS - Java Virtual Machine Process Status Tool</h1>
+<p>Dotychczas gdy na linuxie bądź macu musiałem ubić jakiś program javovy to z automatu używałem kombinacji:</p>
+<pre>ps aux | grep java</pre>
+<p>Dodam, że powyższy trick podejrzałem od kogoś innego, bo zwykle używałem wizualnych narzędzi systemowych. Od dziś dzięki koledze Marcinowi poznałem nowe narzędzie - JPS. Jps oznacza narzędzie javy do wyszukiwania wszystkich aktywnych maszyn wirtualnych. Wystarczy wpisać:</p>
+<pre>jps</pre>
+<p>i otrzymujemy bardzo prosty wynik:</p>
+<pre>10402 Jps
+5767 Main
+6603 Launcher</pre>
+<p>Czyli PID procesu i nazwę programu, dokładnie tyle by podjąć decyzję co ubić. Dla por&oacute;wniania wynik komendy ps zajmuje całą przestrzeń konsoli, zawsze znajdzie 'samego siebie' czyli komendę ps/grep i czasami coś co ma nazwę java, ale nie jest programem javowym.</p>
+<p>Jeśli jednak chcemy trochę więcej informacji, to dodanie flagi '-v' wzbogaci wynik o wszystkie parametry i flagi przekazane podczas uruchomienia r&oacute;wnież jest przydatne:</p>
+<pre>5767 Main -Xbootclasspath/a:/media/wojtek/dane/programy/idea-IC-173.4548.28/lib/boot.jar -Xms128m -Xmx750m -XX:ReservedCodeCacheSize=240m -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=50 -ea -Dsun.io.useCanonCaches=false -Djava.net.preferIPv4Stack=true -XX:+HeapDumpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow -Dawt.useSystemAAFontSettings=lcd -Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine -XX:ErrorFile=/home/wojtek/java_error_in_IDEA_%p.log -XX:HeapDumpPath=/home/wojtek/java_error_in_IDEA.hprof -Didea.paths.selector=IdeaIC2017.3 -Djb.vmOptionsFile=/media/wojtek/dane/programy/idea-IC-173.4548.28/bin/idea64.vmoptions -Didea.platform.prefix=Idea -Didea.jre.check=true
+11067 Jps -Dapplication.home=/usr/lib/jvm/java-9-oracle -Xms8m -Djdk.module.main=jdk.jcmd
+6603 Launcher -Xmx700m -Djava.awt.headless=true -Djdt.compiler.useSingleThread=true -Dpreload.project.path=/home/wojtek/IdeaProjects/inliner -Dpreload.config.path=/home/wojtek/.IdeaIC2017.3/config/options -Dcompile.parallel=false -Drebuild.on.dependency.change=true -Djava.net.preferIPv4Stack=true -Dio.netty.initialSeedUniquifier=-6053803217754955273 -Dfile.encoding=UTF-8 -Duser.language=pl -Duser.country=PL -Didea.paths.selector=IdeaIC2017.3 -Didea.home.path=/media/wojtek/dane/programy/idea-IC-173.4548.28 -Didea.config.path=/home/wojtek/.IdeaIC2017.3/config -Didea.plugins.path=/home/wojtek/.IdeaIC2017.3/config/plugins -Djps.log.dir=/home/wojtek/.IdeaIC2017.3/system/log/build-log -Djps.fallback.jdk.home=/media/wojtek/dane/programy/idea-IC-173.4548.28/jre64 -Djps.fallback.jdk.version=1.8.0_152-release -Dio.netty.noUnsafe=true -Djava.io.tmpdir=/home/wojtek/.IdeaIC2017.3/system/compile-server/inliner_b13eaa97/_temp_ -Djps.backward.ref.index.builder=true -Dkotlin.incremental.compilation=true -Dkotlin.daemon.enabled -Dkotlin.dae</pre>
+<p>Pełny opis narzędzia jps można znaleźć tutaj:<a href="https://docs.oracle.com/javase/7/docs/technotes/tools/share/jps.html"> https://docs.oracle.com/javase/7/docs/technotes/tools/share/jps.html</a></p>
+<h1>Modyfikacja typu kolumny w bazie</h1>
+<p>Ostatnio podczas pracy nad jednym z zadań musiałem zmienić spos&oacute;b przechowywania danych, konkretnie to zmieniła się reprezentacja statusu z liczbowego na tekstowy.</p>
+<p>Po modyfikacji test&oacute;w i zmianach w kodzie, oddałem zmiany do review,&nbsp; testy przeszły pomyślnie. Dopiero po testach innego zadania wyszło na jaw, że mechanizm odświeżający schemat bazy danych nie radzi sobie z konwersją istniejących danych. Błędu nie udało mi się znaleźć samemu, bo moja tabela była pusta :/</p>
+<p>Dzięki temu mam nauczkę na długi czas: zmieniając typ obowiązkowo zmieniamy nazwę kolumny! Jeśli dane trzeba zmigrować to nowa i stara tabela muszą wsp&oacute;łistnieć do czasu migracji.</p>
+<h1>Przekazywanie parametr&oacute;w do mavena</h1>
+<p>Od czasu do czasu czytając na temat r&oacute;żnych framework&oacute;w/narzędzi widzę wym&oacute;g by modyfikować zmienną systemową <strong>MAVEN_OPTS</strong>, nie ma w tym nic dziwnego, czasami program potrzebuje trochę więcej RAM do kompilacji.</p>
+<p>Możliwe utrudnienia mogą polegać na tym, że użytkownik może nie mieć uprawnień by ustawić taką wartość, a inny projekt może potrzebować innych ustawień.</p>
+<p>Opr&oacute;cz wpisywania&nbsp; takich wartości na stałe np do skrypt&oacute;w jest też inna możliwość kt&oacute;rą przypadkiem znalazłem czyli katalog <strong>.mvn</strong> zawierający dwa pliki konfiguracyjne:<strong> jvm.config</strong> i <strong>maven.config</strong> kt&oacute;re umożliwiają ustawienie tych samych parametr&oacute;w bezpośrednio na projekcie.</p>
+<p>Dzięki temu wszystkie osoby zaangażowane w projekt od razu działają na tych samych ustawieniach, ponieważ w/w pliki znajdują się zawsze w projekcie.</p>
+<p>Zmiana została wprowadzona w wersji 3.3.1 (2015 rok), więc jest dostępna w większości aktualnych projekt&oacute;w.</p>

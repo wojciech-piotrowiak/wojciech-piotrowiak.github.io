@@ -1,0 +1,37 @@
+---
+layout: post
+status: publish
+published: true
+title: Inteligentny dom część pierwsza
+author:
+  display_name: wpiot
+  login: wpiot
+  email: wojciech.piotrowiak+wordpress@gmail.com
+  url: ''
+author_login: wpiot
+author_email: wojciech.piotrowiak+wordpress@gmail.com
+wordpress_id: 55
+wordpress_url: https://www.wojciechpiotrowiak.eu/?p=55
+date: '2017-05-02 19:49:49 +0200'
+date_gmt: '2017-05-02 18:49:49 +0200'
+categories:
+- DIY
+tags:
+- arduino
+---
+<p>Tematem serii wpis&oacute;w będzie inteligentny dom. Nie będzie to kolejna reklama gotowych produkt&oacute;w, ani unikalne zastosowanie, chce tylko pokazać jak można samemu zupełnie niezależnie zrobić coś na swoje potrzeby. W pierwszej części tylko wstęp i opis modułu czujnik&oacute;w.</p>
+<p>Pierwsze informacje o 'inteligentnych domach' pojawiły się dawno temu, lecz raczej były to przypadki w kt&oacute;rych zapaleńcy przy okazji kapitalnego remontu ścian i instalacji elektrycznych dokładali sporo kabli, trochę automatyki, podłączali sterownik i gotowe.</p>
+<p>Sytuacja zmieniła się gdy popularnym tematem stało się IoT i pojawiły się tanie i małe moduły wi-fi np esp8266, kt&oacute;ry można kupić z dostawą nawet w okolicy 10 złotych. Nowy zminiaturyzowany komputer z 256MB RAM, 4 rdzeniowym CPU, cena z dostawą 43 złote! Te ceny oczywiście z aliexpress, ale moim zdaniem warto poczekać za taką cenę.</p>
+<p>Z całej gamy zastosowań IoT od razu zdecydowałem, że nie chce żadnej mechaniki, ani sterowania światłem itp. Uznałem, że dla mnie najważniejsza jest kontrola nad tym co dzieje się w domu. Wstępnie wybrałem pomiar ciśnienia, temperatury i wilgotności, natomiast czujnik światła i przekaźniki czekają na swoją kolej.</p>
+<p>Jako, że miałem już jakieś doświadczenie z arduino, to bazą modułu z czujnikami został moduł esp8266 z wbudowanym arduino. Wybrałem moduł z zasilaniem USB, przez co całość jest zasilana starą ładowarką do telefonu. Nie polecam natomiast tanich ładowarek z Chin:</p>
+<p><img class="alignnone size-medium wp-image-57" src="http://wordpress1779214.home.pl/autoinstalator/wordpressplus1/wp-content/uploads/2017/04/usb2-300x180.jpg" alt="" width="300" height="180" /><img class="alignnone size-medium wp-image-58" src="http://wordpress1779214.home.pl/autoinstalator/wordpressplus1/wp-content/uploads/2017/04/usb1-300x180.jpg" alt="" width="300" height="180" /></p>
+<p>Obudowa dosyć prosta, z puszki instalacyjnej. Całość połączona kabelkami połączeniowymi. W kwestii podłączenia najważniejsze są trzy rzeczy: jakie napięcie wykorzystać (3,3 lub 5v), jak podłączyć piny z wejścia/wyjścia i podłączenie masy. Wilgotność mierzy czujnik DHT11, a ciśnienie i temperaturę BMP180.</p>
+<p><img class=" wp-image-63 aligncenter" src="http://wordpress1779214.home.pl/autoinstalator/wordpressplus1/wp-content/uploads/2017/05/IMG_20161127_132233-168x300.jpg" alt="" width="168" height="300" /></p>
+<p>Kod źr&oacute;dłowy to prosty 'ulep' z przykład&oacute;w jak ogarnąć wymienione wyżej czujniki, link: https://github.com/wojciech-piotrowiak/iot-bmp-esp</p>
+<p>Organizacyjnie arduino zwraca wynik pomiar&oacute;w w formacie Json do każdego kto zapyta strzelając na port 80 w domowej sieci. Jest to optymalne, bo nie muszę zmuszać arduino do cyklicznej wysyłki danych do serwera. Przykład odpowiedzi:</p>
+<pre>{ "temp":"22.10","press":"98105","hum":"39.000"}</pre>
+<p style="text-align: left;">Łączny koszt zamknął się w okolicach 30 złotych. Moduł DHT można kupić taniej na aliexpress, w moim przypadku kabelki i puszkę miałem wcześniej:</p>
+<p>Czujnik BMP 180 7,40 PLN<br />
+Czujnik DHT11 13 PLN (allegro)<br />
+Moduł Wifi esp8266 10,43 PLN</p>
+<p>W następnym odcinku własna część serwerowa z wykorzystaniem Spring Boot!</p>

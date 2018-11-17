@@ -1,0 +1,30 @@
+---
+layout: revision
+status: inherit
+published: false
+title: Nowa seria wpis&oacute;w - narzędzia
+author:
+  display_name: wpiot
+  login: wpiot
+  email: wojciech.piotrowiak+wordpress@gmail.com
+  url: ''
+author_login: wpiot
+author_email: wojciech.piotrowiak+wordpress@gmail.com
+wordpress_id: 187
+wordpress_url: https://www.wojciechpiotrowiak.eu/183-revision-v1/
+date: '2018-04-08 06:03:19 +0200'
+date_gmt: '2018-04-08 06:03:19 +0200'
+categories: []
+tags: []
+---
+<p>Kolejny pomysł na serię wpis&oacute;w - będę opisywał jakie narzędzia przydają mi się w pracy, jakie są ich słabe i mocne strony. Na początek REST czyli program ngrok i wireshark do nasłuchiwania ruchu oraz jmeter i postman do tworzenia wywołań.</p>
+<h2>Ngrok</h2>
+<p>Ngrok, jest usługą kt&oacute;ra umożliwia tunelowanie http i https czyli przekazywanie ruchu z punktu A do punktu B. Jest to potrzebne gdy chcemy przetestować komunikację między komputerami na kt&oacute;rych nie ma możliwości nasłuchu sieci, ani pozyskania informacji z log&oacute;w.</p>
+<p>Na potrzeby test&oacute;w wystarczy adres drugiego komputera zamienić na adres tunelu, a tunel prześle ten ruch na inny adres gdzie mamy możliwość pełnej analizy wiadomości.</p>
+<p>Punkt wejściowy jest publicznym adresem www, kt&oacute;ry jest definiowany przez stronę <strong>ngrok.com</strong>, punkt B to nasz lokalny komputer. Połączenie zestawiane jest w momencie uruchomienia klienta na komputerze, klient to darmowa aplikacja do ściągnięcia z strony<strong> ngrok.com</strong> (w tej chwili jest aż 8 rożnych wersji pod kilka system&oacute;w).</p>
+<p>W wersji darmowej sesja jest ograniczona i trwa 8 godzin, istnieje kilka płatnych pakiet&oacute;w, kt&oacute;re umożliwiają szereg dodatkowych opcji. W systemach linux i mac nie ma potrzeby instalacji, program wystarczy uruchomić z linii komend by usługa zaczęła działać:</p>
+<p><img class="aligncenter size-full wp-image-184" src="https://www.wojciechpiotrowiak.eu/wp-content/uploads/2018/04/ngrokConsole.jpg" alt="" width="736" height="441" /></p>
+<p>Na powyższym obrazku mamy pełen podgląd sytuacji, sesja jest aktywna, jest link do podglądu ruchu w przeglądarce, są dwa publiczne adresy http i https oraz statystyka na samym dole.</p>
+<p>Podgląd w przeglądarce dostarcza wszystkich szczeg&oacute;ł&oacute;w na temat pakiet&oacute;w, payload, headery itp:</p>
+<p><img class="aligncenter size-large wp-image-185" src="https://www.wojciechpiotrowiak.eu/wp-content/uploads/2018/04/ngrokWeb-1024x591.jpg" alt="" width="840" height="485" /></p>
+<p>W praktyce program sprawdza się znakomicie, nie ma żadnego problemu z firewallami, połączenia po https nie generują błęd&oacute;w. Program widziałem po raz pierwszy na jednej z konferencji, natomiast pamięć odświeżył mi kolega z pracy Marcin :)</p>
